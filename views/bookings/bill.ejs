@@ -1,0 +1,116 @@
+<% layout("/layouts/boilerplate") %>
+
+
+<style>
+  body {
+    font-family: 'Arial', sans-serif;
+  }
+
+  .receipt-card {
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 30px;
+    background-color: #fff;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    max-width: 800px;
+    margin: auto;
+  }
+
+  .air-btn {
+    background: linear-gradient(to right, #ff385c, #e61e4d);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-weight: bold;
+    transition: background 0.2s;
+  }
+
+  .air-btn:hover {
+    background: linear-gradient(to right, #e61e4d, #ff385c);
+  }
+
+  .section-title {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 16px;
+  }
+
+  .info-line {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+  }
+
+  .info-line:last-child {
+    border-bottom: none;
+  }
+
+  .listing-img {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    border-radius: 12px;
+    margin-bottom: 20px;
+  }
+
+  .text-muted {
+    color: #666;
+  }
+</style>
+
+<div class="container my-5">
+  <div class="receipt-card">
+
+    <h2 class="mb-3">🎉 Booking Confirmed!</h2>
+    <p class="text-muted mb-4">Thank you for booking with Airbnb. Here’s your official receipt.</p>
+
+    <!-- Listing Image -->
+    <img class="listing-img" src="<%= booking.listing.image.url %>" alt="Listing">
+
+    <!-- Listing Title & Location -->
+    <h4><%= booking.listing.title %></h4>
+    <p class="text-muted"><%= booking.listing.location %>, <%= booking.listing.country %></p>
+
+    <hr class="my-4">
+
+    <!-- Trip Summary -->
+    <div class="section-title">Trip Details</div>
+    <div class="info-line">
+      <span>Check-In</span>
+      <span><%= booking.checkIn.toDateString() %></span>
+    </div>
+    <div class="info-line">
+      <span>Check-Out</span>
+      <span><%= booking.checkOut.toDateString() %></span>
+    </div>
+    <div class="info-line">
+      <span>Guests</span>
+      <span><%= booking.guests %></span>
+    </div>
+
+    <hr class="my-4">
+
+    <!-- Price Summary -->
+    <div class="section-title">Payment Summary</div>
+    <div class="info-line">
+      <span>Base Price</span>
+      <span>₹<%= booking.totalPrice %></span>
+    </div>
+    <div class="info-line">
+      <span>Taxes (18%)</span>
+      <span>₹<%= Math.round(booking.totalPrice * 0.18) %></span>
+    </div>
+    <div class="info-line fw-bold">
+      <span>Total</span>
+      <span>₹<%= Math.round(booking.totalPrice * 1.18) %></span>
+    </div>
+
+    <div class="text-center mt-5">
+      <button class="air-btn" onclick="window.print()">Download / Print Receipt</button>
+    </div>
+  </div>
+</div>
+
+

@@ -1,0 +1,185 @@
+<% layout("/layouts/boilerplate") %>
+<script>
+  const mapToken = "<%= process.env.MAP_TOKEN %>";
+  const coordinates = <%-JSON.stringify(listing.geometry.coordinates) %>
+</script>
+
+<div class="container my-5">
+  <div class="row gy-5">
+    <!-- LEFT COLUMN -->
+    <div class="col-lg-7 ">
+      <h2 class="fw-bold mb-1"><%= listing.title %></h2>
+      <p class="text-muted mb-4">Hosted by <%= listing.owner.username %></p>
+
+      <div class="rounded-4 overflow-hidden mb-4">
+        <img src="<%= listing.image.url %>" class="img-fluid w-100 shadow-sm" alt="listing image">
+      </div>
+
+      <!-- Host Card -->
+      <div class="d-flex align-items-center mb-5">
+        <img src="https://i.pravatar.cc/80?u=<%= listing.owner.username %>" class="rounded-circle me-3 border" width="60" height="60">
+        <div>
+          <h6 class="mb-0 fw-semibold"><%= listing.owner.username %></h6>
+          <small class="text-muted">Superhost · Joined 2024</small>
+        </div>
+        <span class="badge bg-success ms-auto">Verified</span>
+      </div>
+
+      <!-- Description -->
+      <p class="fs-4 mb-3 text-body"><%= listing.description %></p>
+      <p class="text-muted mb-1"><i class="bi bi-geo-alt-fill me-2"></i><%= listing.location %>, <%= listing.country %></p>
+
+      <!-- What this place offers -->
+      <h5 class="mt-5 mb-3 fw-semibold">What this place offers</h5>
+      <div class="row row-cols-2 row-cols-md-3 g-3 mb-5">
+        <div class="col"><i class="bi bi-wifi me-2 text-primary"></i>Wi-Fi</div>
+        <div class="col"><i class="bi bi-tv me-2 text-primary"></i>HD TV</div>
+        <div class="col"><i class="bi bi-cup-hot me-2 text-primary"></i>Breakfast</div>
+        <div class="col"><i class="bi bi-snow me-2 text-primary"></i>AC</div>
+        <div class="col"><i class="bi bi-geo me-2 text-primary"></i>Prime Location</div>
+        <div class="col"><i class="bi bi-shield-check me-2 text-primary"></i>Safe Area</div>
+      </div>
+
+      <!-- Edit/Delete (for owner only) -->
+      <% if(currUser && currUser._id.equals(listing.owner._id)){ %>
+      <div class="d-flex gap-2 mb-5">
+        <a href="/listings/<%=listing._id%>/edit" class="btn btn-outline-secondary">Edit</a>
+        <form method="post" action="/listings/<%= listing._id %>?_method=DELETE">
+          <button class="btn btn-dark">Delete</button>
+        </form>
+      </div>
+      <% } %>
+
+            <!-- House Rules -->
+      <h5 class="mt-5 mb-2 fw-semibold">House Rules</h5>
+      <ul class="list-unstyled text-muted">
+        <li><i class="bi bi-check2-circle me-2 text-success"></i>No smoking</li>
+        <li><i class="bi bi-check2-circle me-2 text-success"></i>No pets</li>
+        <li><i class="bi bi-check2-circle me-2 text-success"></i>Check-in after 1PM</li>
+        <li><i class="bi bi-check2-circle me-2 text-success"></i>Checkout before 11AM</li>
+      </ul>
+
+      <!-- Reviews Section -->
+      <% if(currUser){ %>
+      <hr>
+      <h4 class="mb-3">Leave a Review</h4>
+      <form action="/listings/<%= listing.id %>/reviews" method="post" novalidate class="needs-validation">
+        <fieldset class="starability-slot mb-3">
+          <input type="radio" id="no-rate" class="input-no-rate" name="review[rating]" value="1" checked />
+          <input type="radio" id="first-rate1" name="review[rating]" value="1" />
+          <label for="first-rate1">1 star</label>
+          <input type="radio" id="first-rate2" name="review[rating]" value="2" />
+          <label for="first-rate2">2 stars</label>
+          <input type="radio" id="first-rate3" name="review[rating]" value="3" />
+          <label for="first-rate3">3 stars</label>
+          <input type="radio" id="first-rate4" name="review[rating]" value="4" />
+          <label for="first-rate4">4 stars</label>
+          <input type="radio" id="first-rate5" name="review[rating]" value="5" />
+          <label for="first-rate5">5 stars</label>
+        </fieldset>
+
+        <div class="mb-3">
+          <label for="comment" class="form-label">Comment</label>
+          <textarea name="review[comment]" id="comment" rows="4" class="form-control" required></textarea>
+        </div>
+        <button class="btn btn-outline-dark">Submit</button>
+      </form>
+      <% } %>
+
+     <% if (listing.reviews.length > 0) { %>
+  <hr class="my-5">
+  <h4 class="mb-4 fw-bold">Guest reviews</h4>
+
+  <div class="d-flex flex-column gap-4">
+    <% for (let review of listing.reviews) { 
+         const imgId = Math.abs(Array.from(review.author.username).reduce((acc, ch) => acc + ch.charCodeAt(0), 0)) % 100;
+         const gender = imgId % 2 === 0 ? "men" : "women";
+         const avatarUrl = `https://randomuser.me/api/portraits/${gender}/${imgId}.jpg`;
+    %>
+
+    <div class="d-flex flex-row align-items-start gap-3 p-3 bg-white border rounded-4 shadow-sm">
+      <!-- Avatar -->
+      <img src="<%= avatarUrl %>" 
+           alt="User" 
+           width="60" 
+           height="60" 
+           class="rounded-circle border"
+           style="object-fit: cover; flex-shrink: 0;">
+
+      <!-- Review Content -->
+      <div class="flex-grow-1">
+        <div class="d-flex justify-content-between">
+          <div>
+            <strong>@<%= review.author.username %></strong><br>
+            <small class="text-muted"><%= new Date(review.createdAt).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }) %></small>
+          </div>
+          <!-- Stars -->
+          <div class="text-warning">
+            <% for (let i = 0; i < review.rating; i++) { %>
+              <i class="bi bi-star-fill"></i>
+            <% } %>
+            <% for (let i = review.rating; i < 5; i++) { %>
+              <i class="bi bi-star"></i>
+            <% } %>
+          </div>
+        </div>
+
+        <p class="mt-2 mb-1 lh-base fs-6"><%= review.comment %></p>
+
+        <% if (currUser && currUser._id.equals(review.author._id)) { %>
+        <form method="POST" action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE">
+          <button class="btn btn-sm btn-outline-dark">Delete</button>
+        </form>
+        <% } %>
+      </div>
+    </div>
+
+    <% } %>
+  </div>
+<% } %>
+
+
+
+
+      <!-- Map -->
+      <h5 class="mt-5 mb-3 fw-semibold">Where you'll be</h5>
+      <div id="map" class="rounded shadow-sm" style="height: 400px;"></div>
+    </div>
+
+    <!-- RIGHT COLUMN – Booking Box -->
+   
+    <div class="col-lg-5 ">
+       <br> <br> 
+      <div class="p-4 border rounded shadow sticky-top mt-5" style="top: 100px;">
+        <h5 class="mb-3">
+          <span class="text-muted text-decoration-line-through">₹<%= listing.price + 1000 %></span>
+          <span class="text-danger fw-bold">₹<%= listing.price %></span> / night
+        </h5>
+        <form action="/bookings/checkout/<%= listing._id %>" method="POST">
+          <div class="mb-3">
+            <label>Check-In</label>
+            <input type="date" name="checkIn" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label>Check-Out</label>
+            <input type="date" name="checkOut" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label>Guests</label>
+            <select name="guests" class="form-select">
+              <% for(let i=1; i<=10; i++) { %>
+              <option value="<%= i %>"><%= i %> guest<%= i > 1 ? 's' : '' %></option>
+              <% } %>
+            </select>
+          </div>
+          <button class="btn btn-danger w-100">Reserve</button>
+          <p class="text-center text-muted small mt-2">You won’t be charged yet</p>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<script src="/js/map.js"></script>

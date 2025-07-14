@@ -1,0 +1,138 @@
+<% layout("/layouts/boilerplate") %>
+
+<style>
+  .air-card {
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 24px;
+    background-color: #fff;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  }
+
+  .air-btn {
+    background: linear-gradient(to right, #ff385c, #e61e4d);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    font-weight: bold;
+    transition: background 0.2s;
+  }
+
+  .air-btn:hover {
+    background: linear-gradient(to right, #e61e4d, #ff385c);
+  }
+
+  .payment-option {
+    border: 1px solid #ccc;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-bottom: 10px;
+  }
+
+  .payment-option:hover {
+    border-color: #ff385c;
+    background-color: #fff0f3;
+  }
+
+  .payment-option input[type="radio"] {
+    margin-right: 10px;
+  }
+
+  .method-details {
+    display: none;
+    margin-top: 10px;
+    margin-left: 25px;
+  }
+
+  .method-details input {
+    margin-bottom: 10px;
+  }
+
+  label {
+    font-weight: 500;
+  }
+</style>
+
+<div class="container my-5" style="max-width: 650px;">
+  <h2 class="mb-4 fw-bold">Choose your payment method</h2>
+
+  <form action="/bookings/confirm" method="POST">
+    <div class="air-card">
+      <!-- PAYMENT METHOD OPTIONS -->
+      <div class="payment-option">
+        <label>
+          <input type="radio" name="method" value="Debit Card" onclick="showDetails('debit')"> Debit/Credit Card
+        </label>
+        <div class="method-details" id="debit">
+          <input class="form-control" type="text" name="cardName" placeholder="Name on Card">
+          <input class="form-control" type="text" name="cardNumber" placeholder="Card Number">
+          <input class="form-control" type="text" name="expiry" placeholder="MM/YY">
+          <input class="form-control" type="password" name="cvv" placeholder="CVV">
+        </div>
+      </div>
+
+      <div class="payment-option">
+        <label>
+          <input type="radio" name="method" value="UPI" onclick="showDetails('upi')"> UPI (Google Pay, PhonePe)
+        </label>
+        <div class="method-details" id="upi">
+          <input class="form-control" type="text" name="upiId" placeholder="Enter your UPI ID">
+        </div>
+      </div>
+
+      <div class="payment-option">
+        <label>
+          <input type="radio" name="method" value="Wallet" onclick="showDetails('wallet')"> Wallet (Paytm, Amazon Pay)
+        </label>
+        <div class="method-details" id="wallet">
+          <input class="form-control" type="text" name="walletNumber" placeholder="Wallet phone number or ID">
+        </div>
+      </div>
+
+      <div class="payment-option">
+        <label>
+          <input type="radio" name="method" value="Netbanking" onclick="showDetails('netbanking')"> Net Banking
+        </label>
+        <div class="method-details" id="netbanking">
+          <select class="form-control" name="bankName">
+            <option>Select your bank</option>
+            <option>State Bank of India</option>
+            <option>HDFC Bank</option>
+            <option>ICICI Bank</option>
+            <option>Axis Bank</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="payment-option">
+        <label>
+          <input type="radio" name="method" value="Cash" onclick="showDetails('cash')"> Cash on Arrival
+        </label>
+        <div class="method-details" id="cash">
+          <p class="text-muted">You'll pay at the property in cash.</p>
+        </div>
+      </div>
+
+      <!-- SUBMIT BUTTON -->
+      <div class="mt-4">
+        <button type="submit" class="air-btn w-100">Pay</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<script>
+  function showDetails(methodId) {
+    const allDetails = document.querySelectorAll('.method-details');
+    allDetails.forEach(detail => detail.style.display = 'none');
+
+    const selected = document.getElementById(methodId);
+    if (selected) {
+      selected.style.display = 'block';
+    }
+  }
+</script>
+
+

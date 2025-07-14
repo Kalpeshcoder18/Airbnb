@@ -1,0 +1,139 @@
+<% layout("/layouts/boilerplate") %>
+
+<style>
+  body {
+    font-family: 'Arial', sans-serif;
+  }
+
+  .air-card {
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 24px;
+    background-color: #fff;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  }
+
+  .air-btn {
+    background: linear-gradient(to right, #ff385c, #e61e4d);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    font-weight: bold;
+    transition: background 0.2s;
+  }
+
+  .air-btn:hover {
+    background: linear-gradient(to right, #e61e4d, #ff385c);
+  }
+
+  .section-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 12px;
+  }
+
+  .edit-link {
+    font-size: 14px;
+    color: #222;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  .edit-link:hover {
+    color: #ff385c;
+  }
+
+  .highlight-box {
+    background-color: #f7f7f7;
+    border: 1px solid #ddd;
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+  }
+</style>
+
+<div class="container my-5">
+  <h2 class="mb-4 fw-bold">Confirm and pay</h2>
+
+  <div class="row">
+    <!-- LEFT SIDE -->
+    <div class="col-md-7 mb-4">
+
+      <div class="highlight-box">
+        <strong>Lower price.</strong><br>
+        Your dates are ₹1,136 less than the avg. nightly rate of the last 60 days.
+      </div>
+
+      <div class="mb-4">
+        <div class="section-title">Your trip</div>
+        <hr>
+        <div class="d-flex justify-content-between mb-3">
+          <div>
+            <p class="fw-bold mb-1">Dates</p>
+            <p><%= booking.checkIn %> – <%= booking.checkOut %></p>
+          </div>
+          <a class="edit-link">Edit</a>
+        </div>
+
+        <div class="d-flex justify-content-between mb-3">
+          <div>
+            <p class="fw-bold mb-1">Check-in time</p>
+            <p>2:00pm – 4:00pm</p>
+          </div>
+          <a class="edit-link">Edit</a>
+        </div>
+
+        <div class="d-flex justify-content-between">
+          <div>
+            <p class="fw-bold mb-1">Guests</p>
+            <p><%= booking.guests %> guest<%= booking.guests > 1 ? 's' : '' %></p>
+          </div>
+          <a class="edit-link">Edit</a>
+        </div>
+      </div>
+
+      <!-- Continue to payment -->
+      <form action="/bookings/payment" method="GET">
+        <button type="submit" class="air-btn w-100">Continue to Payment</button>
+      </form>
+
+    </div>
+
+    <!-- RIGHT SIDE -->
+    <div class="col-md-5">
+      <div class="air-card">
+        <!-- Listing info -->
+        <div class="d-flex mb-3">
+          <img src="<%= listing.image.url %>" class="rounded" width="80" height="80" style="object-fit: cover; margin-right: 12px;">
+          <div>
+            <p class="fw-bold mb-1"><%= listing.title %></p>
+            <p class="text-muted small mb-0">Room in bed and breakfast</p>
+            <span class="text-warning">&#9733;</span> 4.91 (44 reviews)
+          </div>
+        </div>
+
+        <hr>
+
+        <!-- Price breakdown -->
+        <h5 class="mb-3 fw-bold">Your total</h5>
+        <div class="d-flex justify-content-between">
+          <p>₹<%= listing.price %> x 1 night</p>
+          <p>₹<%= booking.totalPrice %></p>
+        </div>
+        <div class="d-flex justify-content-between">
+          <p>Taxes</p>
+          <p>₹<%= tax %></p>
+        </div>
+
+        <hr>
+        <div class="d-flex justify-content-between fw-bold">
+          <p>Total (INR)</p>
+          <p>₹<%= total %></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
