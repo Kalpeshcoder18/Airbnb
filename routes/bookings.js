@@ -82,7 +82,7 @@ router.post('/confirm',isLoggedIn, async (req, res) => {
 // Final bill page
 router.get('/bill',isLoggedIn, async (req, res) => {
   const bookingId = req.session.bookingId;
-  if (!bookingId) return res.redirect('/'); // or show error
+  if (!bookingId) return res.redirect('/listings'); // or show error
 
   const booking = await Booking.findById(bookingId).populate('listing');
   req.session.bookingId = null; // optional: clear after use

@@ -67,9 +67,10 @@ const sessionOptions={
     }
 };
 
-// app.get("/",(req,res)=>{
-//     res.send("Hello World");
-// });
+app.get("/", (req, res) => {
+  res.redirect("/listings");
+});
+
 
 
 
@@ -110,7 +111,7 @@ app.use("/bookings",bookingRouter);
 
 //     next( ExpressError(404, "page not found"));  
 // });
-
+    
 
 //server side ke error
 app.use((err,req,res,next)=>{
