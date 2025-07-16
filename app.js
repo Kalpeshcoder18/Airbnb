@@ -15,7 +15,7 @@ const flash=require("connect-flash");
 const passport=require("passport");
 const LocalStrategy=require("passport-local");
 const User=require("./models/user.js"); 
-
+const chatRoutes = require("./routes/chats");
 
 
 const listingRouter=require("./routes/listing.js");
@@ -106,6 +106,9 @@ app.use("/listings/:id/reviews",reviewRouter);
 
 app.use("/",userRouter);
 app.use("/bookings",bookingRouter);
+app.use(express.json());
+
+app.use("/", chatRoutes);
 
 // app.all("*", (req, res, next) => {
 

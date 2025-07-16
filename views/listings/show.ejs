@@ -4,6 +4,128 @@
   const coordinates = <%-JSON.stringify(listing.geometry.coordinates) %>
 </script>
 
+<style>
+  #chatbotBtn {
+    position: fixed;
+    bottom: 30px; /* Raised to avoid Reserve box */
+    right: 35px;
+    background-color: #ff385c;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    font-size: 26px;
+    cursor: pointer;
+    z-index: 1100;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  }
+
+  #chatPanel {
+    position: fixed;
+    bottom: 160px; /* Raised to avoid footer and reserve box */
+    right: 35px;
+    width: 340px;
+    height: 480px;
+    background: white;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 1100;
+    border: 1px solid #ddd;
+  }
+
+  #chatHeader {
+    background-color: #ff385c;
+    color: white;
+    padding: 14px;
+    font-weight: bold;
+    font-size: 16px;
+    text-align: center;
+    border-top-left-radius: 18px;
+    border-top-right-radius: 18px;
+  }
+
+  #chatMessages {
+    flex: 1;
+    padding: 14px;
+    overflow-y: auto;
+    font-size: 14px;
+    background-color: #f9f9f9;
+  }
+
+  #chatInput {
+    display: flex;
+    padding: 12px;
+    border-top: 1px solid #ddd;
+    background: #fff;
+  }
+
+  #chatInput textarea {
+    flex: 1;
+    padding: 8px;
+    resize: none;
+    font-size: 14px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+  }
+
+  #chatInput button {
+    margin-left: 6px;
+    background-color: #ff385c;
+    border: none;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  .chat-bubble {
+    margin-bottom: 10px;
+    padding: 10px 14px;
+    border-radius: 16px;
+    display: inline-block;
+    max-width: 80%;
+    line-height: 1.5;
+    word-wrap: break-word;
+  }
+
+  .user {
+    background-color: #ff385c;
+    color: white;
+    align-self: flex-end;
+  }
+
+  .bot {
+    background-color: #ececec;
+    color: #333;
+    align-self: flex-start;
+  }
+
+  .typing {
+    font-style: italic;
+    font-size: 12px;
+    margin-top: 5px;
+    color: gray;
+  }
+
+  @media (max-width: 768px) {
+    #chatPanel {
+      bottom: 90px;
+      right: 10px;
+      width: 90%;
+      height: 400px;
+    }
+    #chatbotBtn {
+      right: 10px;
+      bottom: 20px;
+    }
+  }
+</style>
+
+
 <div class="container my-5">
   <div class="row gy-5">
     <!-- LEFT COLUMN -->
@@ -180,6 +302,54 @@
   </div>
 </div>
 
+<button id="chatbotBtn">💬</button>
 
+<div id="chatPanel">
+  <div id="chatHeader">Ask about this stay</div>
+  <div id="chatMessages"></div>
+  <div id="chatInput">
+    <textarea id="chatText" rows="1" placeholder="Ask something..."></textarea>
+    <button onclick="sendChat()">➤</button>
+  </div>
+</div>
 
 <script src="/js/map.js"></script>
+<script>
+  const chatbotBtn = document.getElementById("chatbotBtn");
+  const chatPanel = document.getElementById("chatPanel");
+  const chatMessages = document.getElementById("chatMessages");
+  const listingId = "<%= listing._id %>";
+
+  chatbotBtn.addEventListener("click", () => {
+    chatPanel.style.display = chatPanel.style.display === "flex" ? "none" : "flex";
+    chatPanel.style.flexDirection = "column";
+  });
+
+  async function sendChat() {
+    const input = document.getElementById("chatText");
+    const msg = input.value.trim();
+    if (!msg) return;
+
+    chatMessages.innerHTML += `<div class="chat-bubble user">${msg}</div>`;
+    chatMessages.innerHTML += `<div class="typing" id="typing">Bot is typing...</div>`;
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    input.value = "";
+
+    try {
+      const res = await fetch(`/chatbot/${listingId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: msg }),
+      });
+
+      const data = await res.json();
+      document.getElementById("typing")?.remove();
+      chatMessages.innerHTML += `<div class="chat-bubble bot">${data.reply}</div>`;
+    } catch (err) {
+      document.getElementById("typing")?.remove();
+      chatMessages.innerHTML += `<div class="chat-bubble bot">Oops! Something went wrong.</div>`;
+    }
+
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+</script>
