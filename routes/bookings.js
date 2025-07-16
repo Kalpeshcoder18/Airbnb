@@ -5,8 +5,13 @@ const Listing = require('../models/listing');
 const wrapAsync=require("../utils/wrapAsync.js");
 const {isLoggedIn,isOwner,validateReview,isReviewAuthor}=require("../middleware.js");
 
+router.get('/checkout/:id', isLoggedIn, (req, res) => {
+  res.redirect('/listings/' + req.params.id); // or redirect wherever you want
+});
+
+
 // User submits Reserve → store in session
-router.post('/checkout/:id',isLoggedIn, async (req, res) => {
+router.post('/checkout/:id',isLoggedIn, wrapAsync(async (req, res) => {
   const { id } = req.params;
   const { checkIn, checkOut, guests } = req.body;
   const listing = await Listing.findById(id);
@@ -24,10 +29,10 @@ router.post('/checkout/:id',isLoggedIn, async (req, res) => {
   };
 
   res.redirect('/bookings/confirm');
-});
+}));
 
 //Show trip summary + total price before payment
-router.get('/confirm',isLoggedIn, async (req, res) => {
+router.get('/confirm',isLoggedIn, wrapAsync(async (req, res) => {
   const booking = req.session.booking;
   if (!booking) return res.redirect('/'); // safety check
 
@@ -42,17 +47,17 @@ router.get('/confirm',isLoggedIn, async (req, res) => {
     tax,
     total
   });
-});
+}));
 
 //  Show fake payment UI
-router.get('/payment',isLoggedIn, (req, res) => {
+router.get('/payment',isLoggedIn, wrapAsync((req, res) => {
   const booking = req.session.booking;
   if (!booking) return res.redirect('/');
   res.render('bookings/payment', { booking });
-});
+}));
 
 
-router.post('/confirm',isLoggedIn, async (req, res) => {
+router.post('/confirm',isLoggedIn, wrapAsync(async (req, res) => {
   const bookingData = req.session.booking;
 
   if (!bookingData) {
@@ -75,12 +80,12 @@ router.post('/confirm',isLoggedIn, async (req, res) => {
   req.session.booking = null;
 
   res.redirect('/bookings/bill');
-});
+}));
 
 
 
 // Final bill page
-router.get('/bill',isLoggedIn, async (req, res) => {
+router.get('/bill',isLoggedIn, wrapAsync(async (req, res) => {
   const bookingId = req.session.bookingId;
   if (!bookingId) return res.redirect('/listings'); // or show error
 
@@ -88,6 +93,6 @@ router.get('/bill',isLoggedIn, async (req, res) => {
   req.session.bookingId = null; // optional: clear after use
 
   res.render('bookings/bill', { booking });
-});
+}));
 
 module.exports = router;
