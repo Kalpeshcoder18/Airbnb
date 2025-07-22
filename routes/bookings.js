@@ -2,41 +2,63 @@ const express = require('express');
 const router = express.Router();
 const Booking = require('../models/booking');
 const Listing = require('../models/listing');
-const wrapAsync=require("../utils/wrapAsync.js");
-const {isLoggedIn,isOwner,validateReview,isReviewAuthor}=require("../middleware.js");
+const wrapAsync = require("../utils/wrapAsync.js");
+const { isLoggedIn } = require("../middleware.js");
 
-router.get('/checkout/:id', isLoggedIn, (req, res) => {
-  res.redirect('/listings/' + req.params.id); // or redirect wherever you want
-});
+// GET: Trip Details (From search result click)
+router.get('/checkout/:id', isLoggedIn, wrapAsync(async (req, res) => {
+  const listing = await Listing.findById(req.params.id);
+  if (!listing) return res.redirect('/listings');
 
+  const { checkIn, checkOut, guests } = req.query;
+  if (!checkIn || !checkOut || !guests) return res.redirect(`/listings/${req.params.id}`);
 
-// User submits Reserve → store in session
-router.post('/checkout/:id',isLoggedIn, wrapAsync(async (req, res) => {
-  const { id } = req.params;
-  const { checkIn, checkOut, guests } = req.body;
-  const listing = await Listing.findById(id);
+  const nights = Math.ceil((new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24));
+  if (nights <= 0) return res.redirect(`/listings/${req.params.id}`);
 
-  const nights = (new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24);
   const totalPrice = listing.price * nights;
 
-
   req.session.booking = {
-    listingId: id,
+    listingId: listing._id,
     checkIn,
     checkOut,
-    guests,
+    guests: parseInt(guests),
     totalPrice
   };
 
   res.redirect('/bookings/confirm');
 }));
 
-//Show trip summary + total price before payment
-router.get('/confirm',isLoggedIn, wrapAsync(async (req, res) => {
+// POST: Trip Details (From “Reserve” on listing show page)
+router.post('/checkout/:id', isLoggedIn, wrapAsync(async (req, res) => {
+  const { id } = req.params;
+  const { checkIn, checkOut, guests } = req.body;
+  const listing = await Listing.findById(id);
+  if (!listing || !checkIn || !checkOut || !guests) return res.redirect(`/listings/${id}`);
+
+  const nights = Math.ceil((new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24));
+  if (nights <= 0) return res.redirect(`/listings/${id}`);
+
+  const totalPrice = listing.price * nights;
+
+  req.session.booking = {
+    listingId: listing._id,
+    checkIn,
+    checkOut,
+    guests: parseInt(guests),
+    totalPrice
+  };
+
+  res.redirect('/bookings/confirm');
+}));
+
+// GET: Confirmation Page
+router.get('/confirm', isLoggedIn, wrapAsync(async (req, res) => {
   const booking = req.session.booking;
-  if (!booking) return res.redirect('/'); // safety check
+  if (!booking) return res.redirect('/');
 
   const listing = await Listing.findById(booking.listingId);
+  if (!listing) return res.redirect('/');
 
   const tax = Math.round(booking.totalPrice * 0.12);
   const total = booking.totalPrice + tax;
@@ -49,29 +71,19 @@ router.get('/confirm',isLoggedIn, wrapAsync(async (req, res) => {
   });
 }));
 
-//  Show fake payment UI
-router.get('/payment',isLoggedIn, wrapAsync((req, res) => {
-  const booking = req.session.booking;
-  if (!booking) return res.redirect('/');
-  res.render('bookings/payment', { booking });
-}));
-
-
-router.post('/confirm',isLoggedIn, wrapAsync(async (req, res) => {
+// POST: Confirm and Save Booking
+router.post('/confirm', isLoggedIn, wrapAsync(async (req, res) => {
   const bookingData = req.session.booking;
-
-  if (!bookingData) {
-    return res.status(400).send("Booking session expired. Please start again.");
-  }
+  if (!bookingData) return res.status(400).send("Booking session expired.");
 
   const booking = new Booking({
     listing: bookingData.listingId,
     user: req.user._id,
-    checkIn: bookingData.checkIn,
-    checkOut: bookingData.checkOut,
+    checkIn: new Date(bookingData.checkIn),
+    checkOut: new Date(bookingData.checkOut),
     guests: bookingData.guests,
     totalPrice: bookingData.totalPrice,
-    paymentMethod: req.body.method || "Unknown"
+    paymentMethod: req.body.method || "UPI"
   });
 
   await booking.save();
@@ -82,15 +94,20 @@ router.post('/confirm',isLoggedIn, wrapAsync(async (req, res) => {
   res.redirect('/bookings/bill');
 }));
 
+// GET: Fake Payment UI
+router.get('/payment', isLoggedIn, (req, res) => {
+  const booking = req.session.booking;
+  if (!booking) return res.redirect('/');
+  res.render('bookings/payment', { booking });
+});
 
-
-// Final bill page
-router.get('/bill',isLoggedIn, wrapAsync(async (req, res) => {
+// GET: Final Bill Page
+router.get('/bill', isLoggedIn, wrapAsync(async (req, res) => {
   const bookingId = req.session.bookingId;
-  if (!bookingId) return res.redirect('/listings'); // or show error
+  if (!bookingId) return res.redirect('/listings');
 
   const booking = await Booking.findById(bookingId).populate('listing');
-  req.session.bookingId = null; // optional: clear after use
+  req.session.bookingId = null; // Clear for safety
 
   res.render('bookings/bill', { booking });
 }));
